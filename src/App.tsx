@@ -1,24 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import "./App.css";
+import useFetch from "react-fetch-hook";
+import { ParsedUser, FetchedData } from "./utils/Types";
+import { parseUser } from "./utils/ParseUser";
+import { ListElement } from "./ListElement";
+import { AccountPopUp } from "./AccountPopUp";
 
 function App() {
+  const { data } = useFetch<FetchedData>(
+    "https://randomuser.me/api/?results=20&inc=picture,name,nat,login,email,dob"
+  );
+
+  const parsedUsers = parseUser(data?.results);
+
+  const [shouldShow, toggleShow] = useState(false);
+  const [currentUser, toggleCurrentAccount] = useState<ParsedUser>();
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+      {parsedUsers?.map((user, index) => (
+        <div
+          key={index}
+          onClick={() => {
+            toggleCurrentAccount(user);
+            toggleShow(!shouldShow);
+          }}
         >
-          Learn React
-        </a>
-      </header>
+          <ListElement {...user} />
+        </div>
+      ))}
+      <div
+        onClick={() => {
+          toggleShow(!shouldShow);
+        }}
+      >
+        {shouldShow && currentUser !== undefined ? (
+          <AccountPopUp {...currentUser} />
+        ) : null}
+      </div>
     </div>
   );
 }
